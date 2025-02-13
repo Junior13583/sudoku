@@ -4,8 +4,126 @@
     <meta charset="UTF-8">
     <title>Sudoku</title>
 </head>
-<body>
+<style>
+    .gameHead {
+        display: flex;
+        justify-content: space-between;
+        height: 70px;
+        width: 100%;
+        margin-top: 15%;
+    }
 
+    .home {
+        position: absolute;
+        left: 3%;
+        width: 65px;
+        height: 65px;
+        background-image: url('img/home.png'); /* 设置背景图片 */
+        background-size: cover; /* 可选：设置背景图片覆盖整个div */
+        background-position: center; /* 可选：设置背景图片居中 */
+        background-repeat: no-repeat; /* 可选：设置背景图片不重复 */
+    }
+
+    .level {
+        font-size: 58px;
+        line-height: 70px;
+        color: #a65c31;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'system-ui';
+        font-weight: bold;
+    }
+
+    .gameInfo {
+        display: flex;
+        justify-content: space-between;
+        height: 70px;
+        width: 100%;
+    }
+
+    .type {
+        position: absolute;
+        left: 3%;
+        line-height: 70px;
+        font-size: 49px;
+        color: #585147;
+    }
+
+    .errorTimes{
+        font-size: 49px;
+        line-height: 70px;
+        color: #5a534b;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'system-ui';
+        font-weight: bold;
+    }
+
+    .time{
+        line-height: 70px;
+        font-size: 49px;
+        color: #a65c31;
+        position: absolute;
+        right: 3%;
+    }
+
+    .gameOption{
+        display: flex;
+        justify-content: space-between;
+        height: 140px;
+        width: 100%;
+    }
+
+    .optionItems {
+        margin: 0 auto; /* 水平居中 */
+        text-align: center;
+        background-color: red;
+        width: 100px;
+        display: flex;
+    }
+
+    .delBox {
+        display: flex;
+    }
+</style>
+<body>
+    <div class="gameHead">
+        <div class="home"></div>
+        <div class="level">关卡1</div>
+    </div>
+    <div class="gameInfo">
+        <div class="type">容易</div>
+        <div class="errorTimes">错误次数:❤️❤️❤️</div>
+        <div class="time">00:00</div>
+    </div>
+    <div class="gamePalace"></div>
+    <div class="gameOption">
+        <div class="optionItems">
+            <div class="delBox">
+                <div class="delImg"></div>
+                <div class="delTitle">擦除</div>
+            </div>
+            <div class="backBox">
+                <div class="backImg"></div>
+                <div class="backTitle">撤回</div>
+            </div>
+            <div class="quickNoteBox">
+                <div class="quickNoteImg"></div>
+                <div class="quickNoteTitle">一键笔记</div>
+            </div>
+            <div class="noteBox">
+                <div class="noteImg"></div>
+                <div class="noteTitle">笔记</div>
+            </div>
+            <div class="helpBox">
+                <div class="helpImg"></div>
+                <div class="helpTitle">提示</div>
+            </div>
+        </div>
+    </div>
+    <div class="gameInput"></div>
 </body>
 <script>
 	// 默认游戏等级参数
@@ -84,7 +202,8 @@
 		// 动态生成一个9*9的表格
 		var table = document.createElement("table");
 		// 给table添加样式，添加边框，第3行和第3列加粗，第6行和第6列加粗
-		table.style.border = "1px solid #000";
+		table.style.border = "4px solid #53504d";
+        table.style.borderCollapse = 'collapse';
 		for(var i=0;i<9;i++){
 			var tr = document.createElement("tr");
 			for(var j=0;j<9;j++){
@@ -129,13 +248,12 @@
 				td.style.textAlign = "center";
 				td.style.verticalAlign = "middle";
 				td.style.lineHeight = "60px";
-				td.style.fontWeight = "bold";
 				// 添加边框，来区分每个宫
 				if(i===2 || i===5){
-					td.style.borderBottom = "10px solid blue";
+					td.style.borderBottom = "4px solid #53504d";
 				}
 				if(j===2 ||j===5){
-					td.style.borderRight = "10px solid blue";
+                    td.style.borderRight = "4px solid #53504d";
 				}
 				// 创建用于存放填入的数字容器
 				var filldiv = document.createElement("div");
