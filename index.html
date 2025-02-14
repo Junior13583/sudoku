@@ -82,7 +82,7 @@
     }
 
     .gameNumberInnerTd {
-        font-size: 30px;
+        font-size: 36px;
         width: 30px;
         height: 30px;
         line-height: 30px;
@@ -387,6 +387,7 @@
 				var table2 = document.createElement("table");
 				table2.setAttribute('id', 'inner_tabindex_' + i + '_' + j);
 				table2.style.display = 'none';
+                table2.style.borderCollapse = 'collapse';
 				var innerValue = 1
 				for(var k=0;k<3;k++){
 					var tr2 = document.createElement("tr");
@@ -450,6 +451,8 @@
 					fillDiv.parentElement.style.color = underFontColor;
                     // 记录错误位置
                     errorPosition[focusPosition[0]][focusPosition[1]] = 1;
+                    // 同时当前选中的单元格，所在的宫中将记录的笔记清除掉
+                    clearInnerTd()
                     // 高亮相同数字单元格
                     sampleNumberHighlight(fillDiv, false)
 					errorNumber = errorNumber + 1;
@@ -465,14 +468,8 @@
 						document.getElementById('inner_td_' + focusPosition[0] + "_" + k + '_' + inputValue).innerHTML = '';
 						document.getElementById('inner_td_' + k + "_" + focusPosition[1] + '_' + inputValue).innerHTML = '';
 					}
-					// 同时当前选中的单元格，所在的宫中将记录的笔记中的相同的数字清除掉
-					const boxRowStart = Math.floor(focusPosition[0] / 3) * 3;
-					const boxColStart = Math.floor(focusPosition[1] / 3) * 3;
-					for (let i = 0; i < 3; i++) {
-						for (let j = 0; j < 3; j++) {
-							document.getElementById('inner_td_' + (boxRowStart + i) + "_" + (boxColStart + j) + '_' + inputValue).innerHTML = '';
-						}
-					}
+					// 同时当前选中的单元格，所在的宫中将记录的笔记清除掉
+                    clearInnerTd()
 				}
 				// 数字填入后，隐藏笔记，显示填入的数字
 				let innerTab = document.getElementById('inner_tabindex_' + focusPosition[0] + '_' + focusPosition[1]);
@@ -488,6 +485,12 @@
 
         })
     })
+
+    function clearInnerTd(){
+        for (let i = 1; i <= 9; i++) {
+            document.getElementById('inner_td_' + focusPosition[0] + "_" + focusPosition[1] + '_' + i).innerHTML = '';
+        }
+    }
 
 
 	// 验证所有数字是否已经正确填入
@@ -535,7 +538,6 @@
     const noteElement = document.getElementById('note');
     noteElement.addEventListener('click', function(event) {
 
-
         // 在按钮上显示当前的模式
 		if (!noteModel) {
 			noteElement.children[1].innerHTML = '关闭笔记';
@@ -550,7 +552,7 @@
 				let fillDiv = document.getElementById('fill_' + i + '_' + j);	// 数字录入框
 				if (outTd.getAttribute('data-editable') === 'true') {
 					if (noteModel) { // 笔记模式，如果选择的数字框已填入正确的数字，则不显示笔记，否则显示笔记
-						if (fillDiv.innerHTML === fillDiv.parentElement.getAttribute('data-correctvalue')) {
+						if (fillDiv.innerHTML) {
 							fillDiv.style.display = 'block';
 							innerTab.style.display = 'none';
 						} else {
@@ -558,7 +560,7 @@
 							innerTab.style.display = 'block';
 						}
 					} else { // 非笔记模式，如果选择的数字框已经填入数字，则不显示笔记，否则显示笔记
-						if (fillDiv.innerHTML === '' || fillDiv.innerHTML !== fillDiv.parentElement.getAttribute('data-correctvalue')) {
+						if (fillDiv.innerHTML === '') {
 							fillDiv.style.display = 'none';
 							innerTab.style.display = 'block';
 						} else {
@@ -572,75 +574,21 @@
         noteModel = !noteModel
         try {
             let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
-            setInputTitleStyle(fillElement.innerHTML === fillElement.parentElement.getAttribute('data-correctvalue'));
+            // todo
+            setInputTitleStyle(fillElement.innerHTML !== '');
         } catch (e){
             setInputTitleStyle(false);
         }
     })
 
-
-	// 创建用于切换模式的按钮
-	var inputModelButton = document.createElement("button");
-	inputModelButton.style.width = "100px";
-	inputModelButton.style.height = "40px";
-	inputModelButton.style.backgroundColor = noteNumberColor;
-	inputModelButton.style.cursor = 'pointer';
-	inputModelButton.innerHTML = '非笔记模式';
-	// 给切换模式的按钮添加点击事件
-	inputModelButton.onclick = function(){
-		// 在按钮上显示当前的模式
-		if (!noteModel) {
-			inputModelButton.innerHTML = '笔记模式';
-		} else {
-			inputModelButton.innerHTML = '非笔记模式';
-		}
-		noteModel = !noteModel
-		// 切换模式后，控制笔记是否显示
-		for(var i=0;i<9;i++){
-			for(var j=0;j<9;j++){
-				var outtd = document.getElementById('out_td_' + i + '_' + j);
-				var innerTab = document.getElementById('inner_tabindex_' + i + '_' + j);	// 笔记框
-				var filldiv = document.getElementById('fill_' + i + '_' + j);	// 数字录入框
-				if (outtd.getAttribute('data-editable') === 'true') {
-					if (noteModel) { // 笔记模式，如果选择的数字框已填入正确的数字，则不显示笔记，否则显示笔记
-						if (filldiv.innerHTML === filldiv.parentElement.getAttribute('data-correctvalue')) {
-							filldiv.style.display = 'block';
-							innerTab.style.display = 'none';
-						} else {
-							filldiv.style.display = 'none';
-							innerTab.style.display = 'block';
-						}
-					} else { // 非笔记模式，如果选择的数字框已经填入数字，则不显示笔记，否则显示笔记
-						if (filldiv.innerHTML === '') {
-							filldiv.style.display = 'none';
-							innerTab.style.display = 'block';
-						} else {
-							filldiv.style.display = 'block';
-							innerTab.style.display = 'none';
-						}
-					}
-				}
-			}
-		}
-	}
-	document.body.appendChild(inputModelButton);
-
-	// 创建用于清除单元内数字的按钮
-	var clearButton = document.createElement("button");
-	clearButton.style.width = "100px";
-	clearButton.style.height = "40px";
-	clearButton.style.backgroundColor = noteNumberColor;
-	clearButton.style.marginLeft = '20px';
-	clearButton.style.cursor = 'pointer';
-	clearButton.innerHTML = '清除';
-	// 给清除按钮添加点击事件
-	clearButton.onclick = function(){
-		// 获取当前选择的数字框的dom元素
+    let delElement = document.getElementById('del');
+    delElement.addEventListener('click', function(event) {
+        // 获取当前选择的数字框的dom元素
 		var filldiv = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
 		// 获取当前选择的数字框
 		const lastfocus = document.getElementById('out_td_' + focusPosition[0] + "_" + focusPosition[1]);
 		// 只能在非笔记模式下，且只可以清除可编辑的数字框内的数据
-		if (noteModel && lastfocus.getAttribute('data-editable') === 'true') {
+		if (!noteModel && lastfocus.getAttribute('data-editable') === 'true') {
 			filldiv.innerHTML = '';
             // 清除数字后，检查错误记录是否需要更新
             let errorPositionFlag = errorPosition[focusPosition[0]][focusPosition[1]]
@@ -649,8 +597,27 @@
             }
             sampleNumberHighlight(filldiv, false)
 		}
-	}
-	document.body.appendChild(clearButton);
+    });
+
+    let helpElement = document.getElementById('help');
+    helpElement.addEventListener('click', function(event) {
+        try{
+            let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
+            if (fillElement.innerHTML === '' || fillElement.innerHTML !== fillElement.parentElement.getAttribute('data-correctvalue')) {
+                fillElement.innerHTML = fillElement.parentElement.getAttribute('data-correctvalue');
+                // 提示后, 检查错误记录是否需要更新
+                let errorPositionFlag = errorPosition[focusPosition[0]][focusPosition[1]]
+                if (errorPositionFlag === 1) {
+                    errorPosition[focusPosition[0]][focusPosition[1]] = 0;
+                }
+                sampleNumberHighlight(fillElement, true)
+            }
+        }catch (e) {
+            console.log("未选择填入框, 无法提示")
+        }
+
+    });
+
 
 	// 创建游戏等级选择表格
 	var levelSelectTable = document.createElement("table");
