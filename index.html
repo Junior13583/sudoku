@@ -574,8 +574,12 @@
         noteModel = !noteModel
         try {
             let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
-            // todo
-            setInputTitleStyle(fillElement.innerHTML !== '');
+            if (noteModel) {
+                setInputTitleStyle(fillElement.innerHTML !== '');
+            } else {
+                setInputTitleStyle(fillElement.innerHTML === fillElement.parentElement.getAttribute('data-correctvalue'));
+            }
+
         } catch (e){
             setInputTitleStyle(false);
         }
