@@ -180,6 +180,14 @@
         visibility: hidden;
     }
 
+    .active{
+        display: flex;
+    }
+
+    .close{
+        display: none;
+    }
+
     /* 背景遮罩层样式 */
     .overlay {
         position: fixed;
@@ -189,7 +197,6 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(5px);
-        display: flex;
         justify-content: center;
         align-items: center;
         z-index: 1;
@@ -280,13 +287,27 @@
     </div>
 
     <!-- 背景遮罩层 -->
-    <div class="overlay">
-        <!-- 弹窗 -->
+    <div class="overlay active">
+        <!-- 菜单弹窗 -->
         <div class="popup">
             <div id="easy" class="levelButton">容易</div>
             <div id="middle" class="levelButton">中等</div>
             <div id="hard" class="levelButton">困难</div>
             <div id="master" class="levelButton">大师</div>
+        </div>
+    </div>
+
+    <div class="overlay close">
+        <!-- 通关弹窗 -->
+        <div class="popup">
+
+        </div>
+    </div>
+
+    <div class="overlay close">
+        <!-- 失败弹窗 -->
+        <div class="popup">
+
         </div>
     </div>
 </body>
@@ -358,7 +379,8 @@
     let startButtons = document.querySelectorAll('.levelButton');
     startButtons.forEach(button => {
         button.addEventListener('click', function () {
-            document.getElementsByClassName('overlay')[0].style.display = 'none';
+            document.getElementsByClassName('overlay')[0].classList.remove('active');
+            document.getElementsByClassName('overlay')[0].classList.add('close');
             switch (this.innerHTML) {
                 case '容易':
                     gamelevel = getRandomNumber(34, 40);
@@ -383,7 +405,8 @@
 
     // 首页点击触发
     document.getElementsByClassName('home')[0].addEventListener('click', function () {
-        document.getElementsByClassName('overlay')[0].style.display = 'flex';
+        document.getElementsByClassName('overlay')[0].classList.remove('close');
+        document.getElementsByClassName('overlay')[0].classList.add('active');
     })
 
 
