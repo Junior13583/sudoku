@@ -319,7 +319,7 @@
 	// 选中的单元格,有数字时显示的背景颜色
 	var haveNumberBackgroundColor = '#8ba23a';
 	// 选中的单元格，没有数字时显示的背景颜色
-	var haveNotNumberBackgroundColor = '#E8D3A4FF';
+	var haveNotNumberBackgroundColor = '#e7d2a4';
 	// 笔记中的数字颜色
 	var noteNumberColor = '#53504d';
 	// 单元格已填入的数字颜色
@@ -603,11 +603,9 @@
 				fillDiv.style.display = 'block';
 				innerTab.style.display = 'none';
 				// 记录已经填写的数字
-				havefillvalue[focusPosition[0]][focusPosition[1]] = inputValue
-				// 1秒后 验证所有数字是否已经正确填入，正确的话，则提示游戏通关
-				setTimeout(() => {
-					valideAllFillValue();
-				}, 1000);
+				havefillvalue[focusPosition[0]][focusPosition[1]] = Number(inputValue)
+				// 验证所有数字是否已经正确填入，正确的话，则提示游戏通关
+                valideAllFillValue();
             }
 
         })
@@ -736,12 +734,6 @@
                 }
             }
 
-            // if (noteModel) {
-            //     setInputTitleStyle(fillElement.innerHTML !== '');
-            // } else {
-            //     setInputTitleStyle(fillElement.innerHTML === fillElement.parentElement.getAttribute('data-correctvalue'));
-            // }
-
         } catch (e){
             setInputTitleStyle(2);
         }
@@ -782,7 +774,10 @@
                 if (errorPositionFlag === 1) {
                     errorPosition[focusPosition[0]][focusPosition[1]] = 0;
                 }
+                havefillvalue[focusPosition[0]][focusPosition[1]] = Number(fillElement.innerHTML);
                 sampleNumberHighlight(fillElement, true)
+                // 验证结果
+                valideAllFillValue();
             }
         }catch (e) {
             console.log("未选择填入框, 无法提示")
@@ -1085,7 +1080,8 @@
 
             if (rowFillNumber !== '' && sameRow.getAttribute('data-correctvalue') === rowFillNumber) {
                 haveNumberSet.add(rowFillNumber);
-            } else if (colFillNumber !== '' && sameCol.getAttribute('data-correctvalue') === colFillNumber) {
+            }
+            if (colFillNumber !== '' && sameCol.getAttribute('data-correctvalue') === colFillNumber) {
                 haveNumberSet.add(colFillNumber);
             }
 
@@ -1273,6 +1269,9 @@
                 // 填入数字错误, 设置背景颜色为错误背景颜色
                 fillDiv.parentElement.style.backgroundColor = errorBoxColor;
             }
+        } else {
+            // 没有填写数字
+            fillDiv.parentElement.style.backgroundColor = haveNotNumberBackgroundColor;
         }
 
         // 遍历错误数组，设置错误背景颜色
