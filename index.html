@@ -377,7 +377,7 @@
             }
             console.log('当前游戏难度:', gamelevel);
             // 创建游戏面板
-            createGameBoard()
+            createGameBoard(0)
         })
     });
 
@@ -391,8 +391,8 @@
      * 初始化游戏参数
      */
     function init() {
-        // 记录填写错误次数
-        errorNumber = 0;
+        // 重置错误机会
+        errorNumber = 3;
         // 记录已经填写的数字的数组
         havefillvalue = Array.from({ length: 9 }, () => Array(9).fill(0));
         // 记录当前选择的数字框的坐标
@@ -403,34 +403,38 @@
         noteModel = false;
         totalTime = 0;
         // 生命值重置
-        document.getElementsByClassName('errorTimes')[0].innerHTML = `<span>❤️</span>
+        document.getElementsByClassName('errorTimes')[0].innerHTML = `错误次数:<span>❤️</span>
                                                                       <span>❤️</span>
                                                                       <span>❤️</span>`
     }
 
-	// 创建游戏面板界面方法
-	function createGameBoard() {
+    /**
+     *
+     * @param type 0:初始化游戏，1:重新开始游戏
+     */
+	function createGameBoard(type) {
         init()
-		// 生成数独表格数据
-		sudokuGrid = generateSudoku();
-		// 按游戏等级生成游戏界面显示的数字
-		var gameBoardErrorCount = 0
-		while (gameBoardErrorCount < 10) {
-            try {
-                gameBoard = randomizeZerosWithUniqueSolution(sudokuGrid, gamelevel);
-                break;
-            } catch (error) {
-                gameBoardErrorCount++;
-                console.log('gameBoardErrorCount:', gameBoardErrorCount);
+        if (type === 0) {
+            // 生成数独表格数据
+            sudokuGrid = generateSudoku();
+            // 按游戏等级生成游戏界面显示的数字
+            var gameBoardErrorCount = 0
+            while (gameBoardErrorCount < 10) {
+                try {
+                    gameBoard = randomizeZerosWithUniqueSolution(sudokuGrid, gamelevel);
+                    break;
+                } catch (error) {
+                    gameBoardErrorCount++;
+                    console.log('gameBoardErrorCount:', gameBoardErrorCount);
+                }
             }
-		}
-		if (gameBoardErrorCount >= 10) {
-		    alert("游戏创建失败，请重新开始游戏！");
-		    return;
-		}
+            if (gameBoardErrorCount >= 10) {
+                alert("游戏创建失败，请重新开始游戏！");
+                return;
+            }
+        }
 
-		//console.log('sudokuGrid', sudokuGrid.map(row => row.join(' ')).join('\n'));
-		//console.log('gameBoard', gameBoard.map(row => row.join(' ')).join('\n'));
+
 		// 清空上次的游戏内容
 		gameDiv.innerHTML = '';
 		// 动态生成一个9*9的表格
@@ -572,12 +576,14 @@
 					fillDiv.parentElement.style.color = underFontColor;
                     // 记录错误位置
                     errorPosition[focusPosition[0]][focusPosition[1]] = 1;
+                    // 进行扣血操作
+                    let errorParent = document.getElementsByClassName('errorTimes')[0];
+                    errorParent.children[0].remove()
+                    errorNumber--;
                     // 同时当前选中的单元格，所在的宫中将记录的笔记清除掉
                     clearInnerTd()
                     // 高亮相同数字单元格
                     sampleNumberHighlight(fillDiv, false)
-					errorNumber = errorNumber + 1;
-					document.getElementById('recordErrorNumber').innerHTML = errorNumber;
 				} else { // 如果填入的数字是正确的，将单元格字体颜色设置为白色
 					fillDiv.parentElement.style.color = underFontColor;
                     // 更新错误位置
@@ -616,7 +622,10 @@
 
 	// 验证所有数字是否已经正确填入
 	function valideAllFillValue() {
-		var isAllRight = true
+        if (errorNumber === 0) {
+            alert('游戏失败')
+        }
+		var isAllRight = true;
 		for(var i=0;i<9;i++){
 			for(var j=0;j<9;j++){
 				if (sudokuGrid[i][j] !== havefillvalue[i][j]) {
@@ -627,7 +636,7 @@
 		if (isAllRight) {
 		    // 停止游戏计时
 		    stopTimer();
-			alert("恭喜通关, 游戏耗时： " + (totalTime/1000) + "秒, 错误次数： " + errorNumber);
+			alert("恭喜通关, 游戏耗时： " + (totalTime/1000) + "秒");
 		}
 	}
 
