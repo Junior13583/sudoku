@@ -180,6 +180,49 @@
         visibility: hidden;
     }
 
+    /* 背景遮罩层样式 */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+    }
+
+    /* 弹窗样式 */
+    .popup {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #eee9db;
+        width: 75%;
+        height: 50%;
+        padding: 20px;
+        border-radius: 40px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+    }
+
+    .levelButton {
+        width: 50%;
+        height: 170px;
+        background-color: #a65c31;
+        color: white;
+        border-radius: 20px;
+        margin: 5% 0 5% 0;
+        line-height: 170px;
+        font-size: 53px;
+        text-align: center;
+        font-family: 'system-ui';
+    }
+
 </style>
 <body>
     <div class="gameHead">
@@ -193,7 +236,7 @@
             <span>❤️</span>
             <span>❤️</span>
         </div>
-        <div class="time">00:00</div>
+        <div id="timeTitle" class="time">00:00</div>
     </div>
     <div class="gamePalace">
 
@@ -235,22 +278,38 @@
             <div id="input_9" class="inputTitle">9</div>
         </div>
     </div>
+
+    <!-- 背景遮罩层 -->
+    <div class="overlay">
+        <!-- 弹窗 -->
+        <div class="popup">
+            <div id="easy" class="levelButton">容易</div>
+            <div id="middle" class="levelButton">中等</div>
+            <div id="hard" class="levelButton">困难</div>
+            <div id="master" class="levelButton">大师</div>
+        </div>
+    </div>
 </body>
 <script>
+    // 容易 34-40 中等41-46 困难46-50 大师 51-56
 	// 默认游戏等级参数
-	var gamelevel = 34;
+	var gamelevel;
 	// 记录填写错误次数
-	var errorNumber = 0;
+	var errorNumber;
 	// 记录已经填写的数字的数组
-	const havefillvalue = Array.from({ length: 9 }, () => Array(9).fill(0));
+	var havefillvalue;
 	// 记录当前选择的数字框的坐标
-	var focusPosition = [];
-    var errorPosition = Array.from({ length: 9 }, () => Array(9).fill(0));
+	var focusPosition;
+    var errorPosition;
+    //输入模式是否笔记模式,true为笔记模式，false为非笔记模式
+	var noteModel;
+    var gameBoard;
+    var sudokuGrid;
+    let intervalId;
+    let totalTime = 0;
 
     // 游戏字体
     var fontFamily = 'system-ui';
-    // 游戏字体大小
-    var fontSize = '75px';
 	// 游戏面板单元格的背景颜色
 	var tdBackgroundColor = '#eee9db';
 	// 数字框选中后，单元格已填入的数字与其他已填入数字的单元格和笔记中相同的数字的提示颜色,
@@ -273,8 +332,7 @@
     var errorBoxColor = '#e05b5f';
     // 遮罩之后字体颜色
     var underFontColor = '#ffffff';
-    //输入模式是否笔记模式,true为笔记模式，false为非笔记模式
-	var noteModel = false;
+
 
     // 頁面背景色
     document.body.style.backgroundColor = tdBackgroundColor;
@@ -285,11 +343,74 @@
 	// 初始化一个游戏容器div
 	var gameDiv = document.getElementsByClassName('gamePalace')[0];
 
-    var gameBoard;
-    var sudokuGrid;
+
+    function getRandomNumber(min, max) {
+        // 计算范围跨度，包含边界值
+        const range = max - min + 1;
+        // 生成 [0, range) 之间的随机小数并乘以范围跨度
+        const randomDecimal = Math.random() * range;
+        // 向下取整得到 [0, range - 1] 之间的整数
+        const randomInteger = Math.floor(randomDecimal);
+        // 加上最小值，得到 [min, max] 之间的随机整数
+        return randomInteger + min;
+    }
+
+    let startButtons = document.querySelectorAll('.levelButton');
+    startButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            document.getElementsByClassName('overlay')[0].style.display = 'none';
+            switch (this.innerHTML) {
+                case '容易':
+                    gamelevel = getRandomNumber(34, 40);
+                    break;
+                case '中等':
+                    gamelevel = getRandomNumber(41, 46);
+                    break;
+                case '困难':
+                    gamelevel = getRandomNumber(46, 50);
+                    break;
+                case '大师':
+                    gamelevel = getRandomNumber(51, 56);
+                    break;
+                default :
+                    break;
+            }
+            console.log('当前游戏难度:', gamelevel);
+            // 创建游戏面板
+            createGameBoard()
+        })
+    });
+
+    // 首页点击触发
+    document.getElementsByClassName('home')[0].addEventListener('click', function () {
+        document.getElementsByClassName('overlay')[0].style.display = 'flex';
+    })
+
+
+    /**
+     * 初始化游戏参数
+     */
+    function init() {
+        // 记录填写错误次数
+        errorNumber = 0;
+        // 记录已经填写的数字的数组
+        havefillvalue = Array.from({ length: 9 }, () => Array(9).fill(0));
+        // 记录当前选择的数字框的坐标
+        focusPosition = [];
+        // 所有错误数字的位置
+        errorPosition = Array.from({ length: 9 }, () => Array(9).fill(0));
+        // 笔记模式关闭
+        noteModel = false;
+        totalTime = 0;
+        // 生命值重置
+        document.getElementsByClassName('errorTimes')[0].innerHTML = `<span>❤️</span>
+                                                                      <span>❤️</span>
+                                                                      <span>❤️</span>`
+    }
 
 	// 创建游戏面板界面方法
 	function createGameBoard() {
+        init()
 		// 生成数独表格数据
 		sudokuGrid = generateSudoku();
 		// 按游戏等级生成游戏界面显示的数字
@@ -514,25 +635,43 @@
      * 设置输入数字样式
      * 1. 非笔记模式，如果选择的数字框已填入正确的数字，输入数字标记为灰色, 意为不可输入
      * 2. 笔记模式, 所有输入数字都变成橙色
-     * @param flag true: 填入的是正确数字， false: 填入的错误数字
+     * @param flag 0: 填入的是正确数字， 1: 填入的错误数字, 2: 未填入数字
      */
     function setInputTitleStyle(flag) {
         inputs.forEach(input => {
-            if (flag) {
-                input.classList.remove('noteInput')
-                input.classList.add('disable');
-            } else {
-                if (!noteModel) {
+            switch (flag) {
+                // 填入正确的数字
+                case 0:
                     input.classList.remove('noteInput')
-                    input.classList.remove('disable');
-                }else {
-                    input.classList.remove('disable');
-                    input.classList.add('noteInput')
-                }
+                    input.classList.add('disable');
+                    break;
+                // 填入错误的数字
+                case 1:
+                    // 非笔记模式
+                    if (!noteModel) {
+                        input.classList.remove('noteInput');
+                        input.classList.remove('disable');
+                    } else {
+                        input.classList.remove('noteInput')
+                        input.classList.add('disable');
+                    }
+                    break;
+                // 未填入数字
+                case 2:
+                    // 非笔记模式
+                    if (!noteModel) {
+                        input.classList.remove('noteInput');
+                        input.classList.remove('disable');
+                    } else {
+                        input.classList.add('noteInput')
+                        input.classList.remove('disable');
+                    }
+                    break;
+
+                default:
+                    break;
             }
-
         })
-
     }
 
     const noteElement = document.getElementById('note');
@@ -574,13 +713,20 @@
         noteModel = !noteModel
         try {
             let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
-            if (fillElement.innerHTML === fillElement.parentElement.getAttribute('data-correctvalue')) {
-                setInputTitleStyle(true);
-            } else {
-                setInputTitleStyle(false);
+            if (fillElement.innerHTML === ''){
+                setInputTitleStyle(2);
                 // 将可以填的数字高亮
                 canFillNumberHighlight()
+            } else {
+                if (fillElement.innerHTML === fillElement.parentElement.getAttribute('data-correctvalue')) {
+                    setInputTitleStyle(0);
+                } else if (fillElement.innerHTML !== fillElement.parentElement.getAttribute('data-correctvalue')) {
+                    setInputTitleStyle(1);
+                    // 将可以填的数字高亮
+                    canFillNumberHighlight()
+                }
             }
+
             // if (noteModel) {
             //     setInputTitleStyle(fillElement.innerHTML !== '');
             // } else {
@@ -588,7 +734,7 @@
             // }
 
         } catch (e){
-            setInputTitleStyle(false);
+            setInputTitleStyle(2);
         }
     })
 
@@ -636,91 +782,8 @@
     });
 
 
-	// 创建游戏等级选择表格
-	var levelSelectTable = document.createElement("table");
-	var levelSelectTr = document.createElement("tr");
-	levelSelectTable.appendChild(levelSelectTr);
-	var levelSelectTd1 = document.createElement("td");
-	var levelSelectTd2 = document.createElement("td");
-	levelSelectTd2.style.width = '80px';
-	var levelSelectTd3 = document.createElement("td");
-	levelSelectTr.appendChild(levelSelectTd1);
-	levelSelectTr.appendChild(levelSelectTd2);
-	levelSelectTr.appendChild(levelSelectTd3);
+    let timer = document.getElementById('timeTitle');
 
-	levelSelectTd1.innerHTML = '选择游戏难度等级：'
-	levelSelectTd1.style.fontWeight = 'bold';
-	// 游戏难度等级选择框
-	var levelSelectTd2Input = document.createElement("select");
-	levelSelectTd2Input.style.fontSize = '15px';
-	levelSelectTd2Input.style.fontWeight = 'bold';
-	levelSelectTd2Input.style.width = '50px'
-	for (let i=1;i<=56;i++) {
-		var option = document.createElement("option");
-		option.setAttribute('value', i);
-		option.innerHTML = i
-		option.style.fontWeight = 'bold';
-		option.style.fontSize = '15px';
-		levelSelectTd2Input.appendChild(option);
-	}
-	levelSelectTd2Input.setAttribute('id', 'level_input');
-	levelSelectTd2Input.value = gamelevel;
-	levelSelectTd2.appendChild(levelSelectTd2Input);
-
-	// 游戏开始按钮
-	var levelSelectTd3Button = document.createElement("button");
-	levelSelectTd3Button.style.cursor = 'pointer';
-	levelSelectTd3Button.style.width = "100px";
-	levelSelectTd3Button.style.height = "40px";
-	levelSelectTd3Button.style.backgroundColor = noteNumberColor;
-	levelSelectTd3Button.innerHTML = '开始游戏';
-	levelSelectTd3.appendChild(levelSelectTd3Button);
-	// 开始游戏按钮点击事件
-	levelSelectTd3Button.onclick = function() {
-		gamelevel = document.getElementById('level_input').value;
-		if (!gamelevel || gamelevel < 1 || gamelevel > 56) {
-			alert("请输入合理的游戏等级！！");
-			return;
-		}
-		// 重新生成游戏面板
-		createGameBoard();
-		// 重置错误次数
-		errorNumber = 0;
-		document.getElementById('recordErrorNumber').innerHTML = errorNumber;
-	}
-
-	document.body.appendChild(levelSelectTable);
-
-	// 创建记录填写错误次数记录 及 计时器
-	var recordErrorNumberTable = document.createElement("table");
-	var recordErrorNumberTr = document.createElement("tr");
-	recordErrorNumberTable.appendChild(recordErrorNumberTr);
-	var recordErrorNumberTd1 = document.createElement("td");
-	var recordErrorNumberTd2 = document.createElement("td");
-	var timerTd3 = document.createElement("td");
-	recordErrorNumberTr.appendChild(recordErrorNumberTd1);
-	recordErrorNumberTr.appendChild(recordErrorNumberTd2);
-	recordErrorNumberTr.appendChild(timerTd3);
-	recordErrorNumberTd1.innerHTML = '错误次数：'
-	recordErrorNumberTd2.innerHTML = '0'
-	recordErrorNumberTd2.style.color = errorColor;
-	recordErrorNumberTd2.style.fontSize = 'xx-large';
-	recordErrorNumberTd2.style.fontWeight = 'bold';
-	recordErrorNumberTd1.style.color = errorColor;
-	recordErrorNumberTd1.style.fontWeight = 'bold';
-	recordErrorNumberTd2.setAttribute('id', 'recordErrorNumber');
-	timerTd3.style.color = errorColor;
-	timerTd3.style.fontSize = 'xx-large';
-	timerTd3.style.fontWeight = 'bold';
-	timerTd3.innerHTML = '00:00:00'
-	timerTd3.style.paddingLeft = '380px';
-
-	document.body.appendChild(recordErrorNumberTable);
-
-
-	// 创建计时器
-	var intervalId;
-	var totalTime = 0; // 总时间，以毫秒为单位
     /**
      * 将毫秒格式化为时间字符串
      * @param {number} ms - 需要格式化的毫秒数
@@ -729,16 +792,13 @@
     function formatTime(ms) {
         // 将毫秒转换为总秒数
         const totalSeconds = Math.floor(ms / 1000);
-        // 计算小时数
-        const hours = Math.floor(totalSeconds / 3600);
         // 计算分钟数
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const minutes = Math.floor(totalSeconds / 60);
         // 计算秒数
-        const seconds = totalSeconds % 60;
+        const seconds = Math.floor(totalSeconds % 60);
 
         // 将小时、分钟和秒数格式化为字符串，不足两位前补0，并用冒号连接
         return [
-            pad(hours),
             pad(minutes),
             pad(seconds)
         ].join(':');
@@ -756,8 +816,7 @@
 
     // 初始化定时器，将时间显示设置为00:00:00，总时间重置为0
     function startTimer() {
-        timerTd3.innerHTML = '00:00:00';
-        totalTime = 0;
+        timer.innerHTML = '00:00';
         // 如果已存在定时器，则清除，以避免重复计时
         if (intervalId) {
             clearInterval(intervalId);
@@ -765,7 +824,7 @@
         // 设置一个新的定时器，每秒更新一次时间显示
         intervalId = setInterval(() => {
             totalTime += 1000;
-            timerTd3.innerHTML = formatTime(totalTime);
+            timer.innerHTML = formatTime(totalTime)
         }, 1000);
     }
 
@@ -1043,7 +1102,7 @@
             // 非笔记模式下, 提示可能填写的数字
             if (!noteModel) {
                 // 先让所有数字不可填写
-                setInputTitleStyle(true)
+                setInputTitleStyle(0)
                 for (let i = 0; i < isPossibleNumber.length; i++) {
                     let inputElement = document.getElementById('input_' + isPossibleNumber[i]);
                     // 让其可以填写
@@ -1156,10 +1215,15 @@
                     numberCount++;
                 }
             });
-
-            setInputTitleStyle(flag)
+            if (flag) {
+                setInputTitleStyle(0);
+            } else {
+                setInputTitleStyle(1);
+                // 将可以填的数字高亮
+                canFillNumberHighlight()
+            }
         }else {
-            setInputTitleStyle(false)
+            setInputTitleStyle(2)
             // 将可以填的数字高亮
             canFillNumberHighlight()
         }
@@ -1224,10 +1288,6 @@
         }
 
     }
-
-	// 调用创建游戏面板界面方法
-	createGameBoard();
-
 
 </script>
 </html>
