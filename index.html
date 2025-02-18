@@ -130,6 +130,7 @@
     var errorPosition;
     //输入模式是否笔记模式,true为笔记模式，false为非笔记模式
 	var noteModel;
+    let quickNoteModel;
     var gameBoard;
     var sudokuGrid;
     let intervalId;
@@ -347,6 +348,8 @@
         errorPosition = Array.from({ length: 9 }, () => Array(9).fill(0));
         // 笔记模式关闭
         noteModel = false;
+        // 一鍵筆記模式挂壁
+        quickNoteModel = false;
         totalTime = 0;
         // 生命值重置
         document.getElementsByClassName('errorTimes')[0].innerHTML = `错误次数:<span>❤️</span>
@@ -726,6 +729,38 @@
         }
     })
 
+    const quickNoteElement = document.getElementById('quickNote');
+    quickNoteElement.addEventListener('click', function(event) {
+        quickNoteModel = !quickNoteModel;
+        for(let i=0;i<9;i++) {
+            for (let j = 0; j < 9; j++) {
+                let fillDiv = document.getElementById('fill_' + i + '_' + j);
+                let innerTab = document.getElementById(`inner_tabindex_${i}_${j}`);
+                // 只处理未填写过数字的格子
+                if (fillDiv.innerHTML === "") {
+                    let isPossibleNumber = canFillNumber(i, j);
+                    // 快速笔记模式, 将空的位置补上笔记
+                    if (quickNoteModel) {
+                        for (const fill of isPossibleNumber) {
+                            document.getElementById('inner_td_' + i + "_" + j + '_' + fill).innerHTML = fill;
+                        }
+                        innerTab.style.display = 'block';
+                        fillDiv.style.display = 'none';
+                    } else {
+                        // 清除所有笔记
+                        for (let k = 1; k <= 9; k++) {
+                            document.getElementById('inner_td_' + i + "_" + j + '_' + k).innerHTML = '';
+                        }
+                        innerTab.style.display = 'none';
+                        fillDiv.style.display = 'block';
+                    }
+                }
+
+            }
+        }
+
+    })
+
     let delElement = document.getElementById('del');
     delElement.addEventListener('click', function(event) {
         // 获取当前选择的数字框的dom元素
@@ -1038,13 +1073,15 @@
 
     /**
      * 获取当前单元格所在宫内单元格
+     * @param {number} x - 当前单元格横坐标
+     * @param {number} y - 当前单元格纵坐标
      * @returns {*[]}
      */
-    function theSameBoxItems() {
+    function theSameBoxItems(x, y) {
         let sameBoxItems = [];
         // 计算选择的单元格所在宫的起始位置坐标
-        const boxRowStart = Math.floor(focusPosition[0] / 3) * 3;	// 横坐标
-        const boxColStart = Math.floor(focusPosition[1] / 3) * 3;	// 纵坐标
+        const boxRowStart = Math.floor(x / 3) * 3;	// 横坐标
+        const boxColStart = Math.floor(y / 3) * 3;	// 纵坐标
         // 将单元格所在宫内的单元格设置相同的背景颜色,
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
@@ -1059,15 +1096,17 @@
 
     /**
      * 判断当前单元格是否为唯一数字
+     * @param {number} x - 当前单元格横坐标
+     * @param {number} y - 当前单元格纵坐标
      */
-    function canFillNumber() {
+    function canFillNumber(x, y) {
         let fullNumberSet = new Set(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
         let haveNumberSet = new Set();
 
         // 同行同列的所有数字添加到haveNumberSet中
         for(let k=0;k<9;k++) {
-            let sameRow = document.getElementById('out_td_' + focusPosition[0] + "_" + k);
-            let sameCol = document.getElementById('out_td_' + k + "_" + focusPosition[1]);
+            let sameRow = document.getElementById('out_td_' + x + "_" + k);
+            let sameCol = document.getElementById('out_td_' + k + "_" + y);
             let rowFillNumber = sameRow.firstChild.innerHTML;
             let colFillNumber = sameCol.firstChild.innerHTML;
 
@@ -1081,7 +1120,7 @@
         }
 
         // 同宫内的数字添加到haveNumberSet中
-        let sameBoxItems = theSameBoxItems();
+        let sameBoxItems = theSameBoxItems(x, y);
         for (let boxItem of sameBoxItems) {
             let boxFillNumber = boxItem.firstChild.innerHTML;
             if (boxFillNumber !== '' && boxItem.getAttribute('data-correctvalue') === boxFillNumber) {
@@ -1096,7 +1135,7 @@
      * 将可以填的数字高亮
      */
     function canFillNumberHighlight() {
-        let isPossibleNumber = canFillNumber();
+        let isPossibleNumber = canFillNumber(focusPosition[0], focusPosition[1]);
             // 非笔记模式下, 提示可能填写的数字
             if (!noteModel) {
                 // 先让所有数字不可填写
@@ -1245,7 +1284,7 @@
         }
 
         // 将单元格所在宫内的单元格设置相同的背景颜色,
-        let sameBoxItems = theSameBoxItems();
+        let sameBoxItems = theSameBoxItems(focusPosition[0], focusPosition[1]);
         for (let boxItem of sameBoxItems) {
             if (boxItem.firstChild.innerHTML === fillnumber && boxItem.firstChild !== fillDiv) {
                 boxItem.style.color = errorColor;
