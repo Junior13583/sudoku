@@ -170,6 +170,64 @@
 	// 初始化一个游戏容器div
 	var gameDiv = document.getElementsByClassName('gamePalace')[0];
 
+    // cookie 默認值
+    let levelInfo = {
+        "容易": 1,
+        "中等": 1,
+        "困难": 1,
+        "大师": 1
+    }
+
+    // 从cookie中获取关卡信息
+    levelInfo = getCookie('levelInfo') === null ? levelInfo : getCookie('levelInfo');
+
+    /**
+     * 该函数用于设置或更新Cookie。如果Cookie已经存在，它会自动延长过期时间
+     * @param name
+     * @param value
+     * @param daysToExpire
+     */
+    function setCookie(name, value, daysToExpire) {
+        let cookie = name + "=" + JSON.stringify(value);
+
+        if (daysToExpire) {
+            const date = new Date();
+            date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+            cookie += "; expires=" + date.toUTCString();
+        }
+
+        cookie += "; path=/"; // 设置Cookie路径为根路径
+        document.cookie = cookie;
+    }
+
+    /**
+     * 该函数用于获取指定名称的Cookie值
+     * @param name
+     * @returns {null|string}
+     */
+    function getCookie(name) {
+        const cookieName = name + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookieArray = decodedCookie.split(';');
+
+        for (let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i].trim();
+            if (cookie.indexOf(cookieName) === 0) {
+                const cookieValue = cookie.substring(cookieName.length, cookie.length);
+                try {
+                    // 尝试将 Cookie 值解析为 JSON 对象
+                    return JSON.parse(cookieValue);
+                } catch (e) {
+                    // 如果解析失败，返回原始值
+                    console.warn("Cookie value is not a valid JSON string:", cookieValue);
+                    return null;
+                }
+            }
+        }
+
+        return null; // 如果未找到 Cookie，返回 null
+    }
+
 
     function getRandomNumber(min, max) {
         // 计算范围跨度，包含边界值
@@ -303,6 +361,12 @@
      * @param type 0:初始化游戏，1:重新开始游戏
      */
 	function createGameBoard(type) {
+        // 保存 cookie
+        setCookie('levelInfo', levelInfo, 7);
+        // 设置关卡标题
+        document.getElementsByClassName('level')[0].innerHTML = `关卡:${levelInfo[levelType.innerHTML]}`;
+        document.getElementById('victoryLevelNum').innerHTML = levelInfo[levelType.innerHTML];
+        document.getElementById('defeatLevelNum').innerHTML = levelInfo[levelType.innerHTML];
         init()
         if (type === 0) {
             // 生成数独表格数据
@@ -534,6 +598,9 @@
     // 下一关
     let nextElement = document.getElementById('next');
     nextElement.addEventListener('click', function (event) {
+        // 更新cookie中关卡信息
+        levelInfo[levelType.innerHTML] += 1;
+        setCookie("levelInfo", levelInfo, 7);
         closePopup();
         createGameBoard(0);
     })
