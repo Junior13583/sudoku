@@ -11,7 +11,7 @@
         <div class="level">关卡1</div>
     </div>
     <div class="gameInfo">
-        <div class="type">容易</div>
+        <div id="levelType" class="type">容易</div>
         <div class="errorTimes">错误次数:
             <span>❤️</span>
             <span>❤️</span>
@@ -61,7 +61,7 @@
     </div>
 
     <!-- 背景遮罩层 -->
-    <div class="overlay close">
+    <div id="menu" class="overlay active">
         <!-- 菜单弹窗 -->
         <div class="popup">
             <div id="easy" class="levelButton">容易</div>
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div class="overlay active">
+    <div id="victory" class="overlay close">
         <!-- 通关弹窗 -->
         <div class="popup">
             <div class="victory popupTitle">挑战成功</div>
@@ -89,12 +89,12 @@
                 <div class="popupSmallTitle">使用时间:</div>
                 <div id="victorySpendTime" class="popupSmallTitle">05:00</div>
             </div>
-            <div class="popupButton next">下一关</div>
+            <div id="next" class="popupButton">下一关</div>
             <div class="popupButton backHome">返回主页</div>
         </div>
     </div>
 
-    <div class="overlay close">
+    <div id="defeat" class="overlay close">
         <!-- 失败弹窗 -->
         <div class="popup">
             <div class="defeat popupTitle">挑战失败</div>
@@ -112,7 +112,7 @@
                 <div class="popupSmallTitle">使用时间:</div>
                 <div id="defeatSpendTime" class="popupSmallTitle">05:00</div>
             </div>
-            <div class="popupButton again">再次挑战</div>
+            <div id="again" class="popupButton">再次挑战</div>
             <div class="popupButton backHome">返回主页</div>
         </div>
     </div>
@@ -183,22 +183,36 @@
     }
 
     let startButtons = document.querySelectorAll('.levelButton');
+    let levelType = document.getElementById('levelType');
+    let victoryLevelInfo = document.getElementById('victoryLevelInfo');
+    let defeatLevelInfo = document.getElementById('defeatLevelInfo');
     startButtons.forEach(button => {
         button.addEventListener('click', function () {
-            document.getElementsByClassName('overlay')[0].classList.remove('active');
-            document.getElementsByClassName('overlay')[0].classList.add('close');
+            closePopup()
             switch (this.innerHTML) {
                 case '容易':
                     gamelevel = getRandomNumber(34, 40);
+                    levelType.innerHTML = '容易';
+                    victoryLevelInfo.innerHTML = '容易';
+                    defeatLevelInfo.innerHTML = '容易';
                     break;
                 case '中等':
                     gamelevel = getRandomNumber(41, 46);
+                    levelType.innerHTML = '中等';
+                    victoryLevelInfo.innerHTML = '中等';
+                    defeatLevelInfo.innerHTML = '中等';
                     break;
                 case '困难':
                     gamelevel = getRandomNumber(46, 50);
+                    levelType.innerHTML = '困难';
+                    victoryLevelInfo.innerHTML = '困难';
+                    defeatLevelInfo.innerHTML = '困难';
                     break;
                 case '大师':
                     gamelevel = getRandomNumber(51, 56);
+                    levelType.innerHTML = '大师';
+                    victoryLevelInfo.innerHTML = '大师';
+                    defeatLevelInfo.innerHTML = '大师';
                     break;
                 default :
                     break;
@@ -211,9 +225,54 @@
 
     // 首页点击触发
     document.getElementsByClassName('home')[0].addEventListener('click', function () {
-        document.getElementsByClassName('overlay')[0].classList.remove('close');
-        document.getElementsByClassName('overlay')[0].classList.add('active');
+        showPopup(0)
     })
+
+
+    /**
+     * 显示弹窗
+     * @param flag 0: 显示菜单弹窗, 1: 显示成功弹窗, 2: 显示失败弹窗
+     */
+    function showPopup(flag) {
+        let menuElement = document.getElementById('menu');
+        let victoryElement = document.getElementById('victory');
+        let defeatElement = document.getElementById('defeat');
+        switch (flag) {
+            case 0:
+                menuElement.classList.remove('close');
+                menuElement.classList.add('active');
+                break;
+            case 1:
+                victoryElement.classList.remove('close');
+                victoryElement.classList.add('active');
+                break;
+            case 2:
+                defeatElement.classList.remove('close');
+                defeatElement.classList.add('active');
+                break;
+            default:
+                break;
+
+        }
+    }
+
+
+    /**
+     * 关闭所有弹窗
+     */
+    function closePopup() {
+        let menuElement = document.getElementById('menu');
+        let victoryElement = document.getElementById('victory');
+        let defeatElement = document.getElementById('defeat');
+
+        menuElement.classList.add('close');
+        victoryElement.classList.add('close');
+        defeatElement.classList.add('close');
+
+        menuElement.classList.remove('active');
+        victoryElement.classList.remove('active');
+        defeatElement.classList.remove('active');
+    }
 
 
     /**
@@ -235,6 +294,8 @@
         document.getElementsByClassName('errorTimes')[0].innerHTML = `错误次数:<span>❤️</span>
                                                                       <span>❤️</span>
                                                                       <span>❤️</span>`
+        // 输入数字重置
+        setInputTitleStyle(3)
     }
 
     /**
@@ -450,7 +511,9 @@
 	// 验证所有数字是否已经正确填入
 	function valideAllFillValue() {
         if (errorNumber === 0) {
-            alert('游戏失败')
+            // 停止游戏计时
+            stopTimer();
+            showPopup(2)
         }
 		var isAllRight = true;
 		for(var i=0;i<9;i++){
@@ -461,17 +524,41 @@
 			}
 		}
 		if (isAllRight) {
-		    // 停止游戏计时
-		    stopTimer();
-			alert("恭喜通关, 游戏耗时： " + (totalTime/1000) + "秒");
+            // 停止游戏计时
+            stopTimer();
+            showPopup(1)
+			// alert("恭喜通关, 游戏耗时： " + (totalTime/1000) + "秒");
 		}
 	}
+
+    // 下一关
+    let nextElement = document.getElementById('next');
+    nextElement.addEventListener('click', function (event) {
+        closePopup();
+        createGameBoard(0);
+    })
+
+    // 重玩
+    let replayElement = document.getElementById('again');
+    replayElement.addEventListener('click', function (event) {
+        closePopup();
+        createGameBoard(1);
+    })
+
+    // 回到菜单选择
+    let backHomeElement = document.querySelectorAll('.backHome');
+    backHomeElement.forEach(back => {
+        back.addEventListener("click", function (event) {
+            closePopup();
+            showPopup(0);
+        });
+    });
 
     /**
      * 设置输入数字样式
      * 1. 非笔记模式，如果选择的数字框已填入正确的数字，输入数字标记为灰色, 意为不可输入
      * 2. 笔记模式, 所有输入数字都变成橙色
-     * @param flag 0: 填入的是正确数字， 1: 填入的错误数字, 2: 未填入数字
+     * @param flag 0: 填入的是正确数字， 1: 填入的错误数字, 2: 未填入数字, 3: 初始化
      */
     function setInputTitleStyle(flag) {
         inputs.forEach(input => {
@@ -499,11 +586,15 @@
                         input.classList.remove('noteInput');
                         input.classList.remove('disable');
                     } else {
-                        input.classList.add('noteInput')
+                        input.classList.add('noteInput');
                         input.classList.remove('disable');
                     }
                     break;
-
+                case 3:
+                    input.classList.remove('disable');
+                    input.classList.remove('noteInput');
+                    input.classList.remove('hidden');
+                    break;
                 default:
                     break;
             }
@@ -670,6 +761,12 @@
      */
     function stopTimer() {
         clearInterval(intervalId); // 清除定时器
+        let victorySpendTime = document.getElementById('victorySpendTime');
+        let defeatSpendTime = document.getElementById('defeatSpendTime');
+
+        victorySpendTime.innerHTML = timer.innerHTML;
+        defeatSpendTime.innerHTML = timer.innerHTML;
+
     }
 
 	/**
