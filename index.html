@@ -4,233 +4,7 @@
     <meta charset="UTF-8">
     <title>Sudoku</title>
 </head>
-<style>
-    .gameHead {
-        display: flex;
-        justify-content: space-between;
-        height: 70px;
-        width: 100%;
-        margin-top: 15%;
-    }
-
-    .home {
-        position: absolute;
-        left: 3%;
-        width: 65px;
-        height: 65px;
-        background-image: url('img/home.png'); /* 设置背景图片 */
-        background-size: cover; /* 可选：设置背景图片覆盖整个div */
-        background-position: center; /* 可选：设置背景图片居中 */
-        background-repeat: no-repeat; /* 可选：设置背景图片不重复 */
-    }
-
-    .level {
-        font-size: 58px;
-        line-height: 70px;
-        color: #a65c31;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: 'system-ui';
-        font-weight: bold;
-    }
-
-    .gameInfo {
-        display: flex;
-        justify-content: space-between;
-        height: 70px;
-        width: 100%;
-    }
-
-    .type {
-        position: absolute;
-        left: 3%;
-        line-height: 70px;
-        font-size: 49px;
-        color: #585147;
-    }
-
-    .errorTimes{
-        font-size: 49px;
-        line-height: 70px;
-        color: #5a534b;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: 'system-ui';
-        font-weight: bold;
-    }
-
-    .time{
-        line-height: 70px;
-        font-size: 49px;
-        color: #a65c31;
-        position: absolute;
-        right: 3%;
-    }
-
-    .gameNumberTd {
-        font-size: 75px;
-        width: 100px;
-        height: 100px;
-        line-height: 100px;
-    }
-
-    .gameNumberDiv{
-        width: 100px;
-        height: 100px;
-    }
-
-    .gameNumberInnerTd {
-        font-size: 36px;
-        width: 30px;
-        height: 30px;
-        line-height: 30px;
-    }
-
-
-    .gameOption{
-        display: flex;
-        justify-content: space-between;
-        height: 140px;
-        width: 100%;
-        padding: 40px 0 0 0;
-    }
-
-    .optionItems {
-        margin: 0 auto; /* 水平居中 */
-        text-align: center;
-        display: flex;
-    }
-
-    .optionBox {
-        display: flex;
-        flex-direction: column;
-        width: 140px;
-        height: 140px;
-        padding: 0 14px;
-    }
-
-    .optionTitle {
-        font-size: 33px;
-        font-family: 'system-ui';
-        font-weight: bold;
-        line-height: 52px;
-        color: #a65c31;
-    }
-
-    .optionImg {
-        padding: 0 26px 0 26px;
-        background-position: center; /* 可选：设置背景图片居中 */
-        background-repeat: no-repeat; /* 可选：设置背景图片不重复 */
-        width: 88px;
-        height: 88px;
-    }
-
-    .delImg {
-        background-image: url('img/del.png');
-    }
-
-    .backImg {
-        background-image: url('img/back.png'); /* 设置背景图片 */
-    }
-
-    .quickNoteImg {
-        background-image: url('img/all_note.png');
-    }
-
-    .noteImg {
-        background-image: url("img/note.png");
-    }
-
-    .helpImg {
-        background-image: url('img/info.png');
-    }
-
-    .gameInput{
-        display: flex;
-        justify-content: space-between;
-        height: 140px;
-        width: 100%;
-    }
-
-    .inputItems {
-        margin: 0 auto; /* 水平居中 */
-        text-align: center;
-        display: flex;
-    }
-
-    .inputTitle {
-        font-size: 88px;
-        font-family: 'system-ui';
-        line-height: 140px;
-        color: #5a534b;
-        padding: 0 26px;
-    }
-
-    .disable{
-        color: #999898;
-    }
-
-    .noteInput{
-        color: #ff8800;
-    }
-
-    .hidden{
-        visibility: hidden;
-    }
-
-    .active{
-        display: flex;
-    }
-
-    .close{
-        display: none;
-    }
-
-    /* 背景遮罩层样式 */
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(5px);
-        justify-content: center;
-        align-items: center;
-        z-index: 1;
-    }
-
-    /* 弹窗样式 */
-    .popup {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: #eee9db;
-        width: 75%;
-        height: 50%;
-        padding: 20px;
-        border-radius: 40px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        z-index: 2;
-    }
-
-    .levelButton {
-        width: 50%;
-        height: 170px;
-        background-color: #a65c31;
-        color: white;
-        border-radius: 20px;
-        margin: 5% 0 5% 0;
-        line-height: 170px;
-        font-size: 53px;
-        text-align: center;
-        font-family: 'system-ui';
-    }
-
-</style>
+<link rel="stylesheet" href="css/index.css">
 <body>
     <div class="gameHead">
         <div class="home"></div>
@@ -287,7 +61,7 @@
     </div>
 
     <!-- 背景遮罩层 -->
-    <div class="overlay active">
+    <div class="overlay close">
         <!-- 菜单弹窗 -->
         <div class="popup">
             <div id="easy" class="levelButton">容易</div>
@@ -297,17 +71,49 @@
         </div>
     </div>
 
-    <div class="overlay close">
+    <div class="overlay active">
         <!-- 通关弹窗 -->
         <div class="popup">
-
+            <div class="victory popupTitle">挑战成功</div>
+            <div class="popupSmallTitle">恭喜你通过关卡挑战</div>
+            <div class="popupSmallTitle">--------关卡信息--------</div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">难度</div>
+                <div id="victoryLevelInfo" class="popupSmallTitle">容易</div>
+            </div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">关卡</div>
+                <div id="victoryLevelNum" class="popupSmallTitle">1</div>
+            </div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">使用时间:</div>
+                <div id="victorySpendTime" class="popupSmallTitle">05:00</div>
+            </div>
+            <div class="popupButton next">下一关</div>
+            <div class="popupButton backHome">返回主页</div>
         </div>
     </div>
 
     <div class="overlay close">
         <!-- 失败弹窗 -->
         <div class="popup">
-
+            <div class="defeat popupTitle">挑战失败</div>
+            <div class="popupSmallTitle">很遗憾, 您闯关失败</div>
+            <div class="popupSmallTitle">--------关卡信息--------</div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">难度</div>
+                <div id="defeatLevelInfo" class="popupSmallTitle">容易</div>
+            </div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">关卡</div>
+                <div id="defeatLevelNum" class="popupSmallTitle">1</div>
+            </div>
+            <div class="popupBox">
+                <div class="popupSmallTitle">使用时间:</div>
+                <div id="defeatSpendTime" class="popupSmallTitle">05:00</div>
+            </div>
+            <div class="popupButton again">再次挑战</div>
+            <div class="popupButton backHome">返回主页</div>
         </div>
     </div>
 </body>
