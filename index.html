@@ -28,10 +28,10 @@
                 <div class="optionImg delImg"></div>
                 <div class="optionTitle">擦除</div>
             </div>
-            <div id="back" class="optionBox">
-                <div class="optionImg backImg"></div>
-                <div class="optionTitle">撤回</div>
-            </div>
+<!--            <div id="back" class="optionBox">-->
+<!--                <div class="optionImg backImg"></div>-->
+<!--                <div class="optionTitle">撤回</div>-->
+<!--            </div>-->
             <div id="quickNote" class="optionBox">
                 <div class="optionImg quickNoteImg"></div>
                 <div class="optionTitle">一键笔记</div>
@@ -41,7 +41,7 @@
                 <div class="optionTitle">开启笔记</div>
             </div>
             <div id="help" class="optionBox">
-                <div class="optionImg helpImg"></div>
+                <div id="helpTimes" class="optionImg helpImg"></div>
                 <div class="optionTitle">提示</div>
             </div>
         </div>
@@ -135,6 +135,7 @@
     var sudokuGrid;
     let intervalId;
     let totalTime = 0;
+    let helpTimes;
 
     // 游戏字体
     var fontFamily = 'system-ui';
@@ -350,6 +351,9 @@
         noteModel = false;
         // 一鍵筆記模式挂壁
         quickNoteModel = false;
+        // 重置提示次数
+        helpTimes = 3;
+        document.getElementById('helpTimes').innerHTML = helpTimes;
         totalTime = 0;
         // 生命值重置
         document.getElementsByClassName('errorTimes')[0].innerHTML = `错误次数:<span>❤️</span>
@@ -418,7 +422,6 @@
 					var tdelement = null;
 					// 获取当前元素
 					const clickelement = event.target;
-					console.log('click element:', clickelement);
 					// 判断点击的是否笔记模式的td，来确认数字单元格所在的td
 					if (clickelement.getAttribute('data-innertd')) {
 						tdelement = clickelement.parentElement.parentElement.parentElement;
@@ -428,7 +431,6 @@
 
 					// 获取选择的td单元格的坐标
 					focusPosition = tdelement.getAttribute('data-position').split('_');
-					console.log('focusPosition:', focusPosition);
                     let fillDiv = document.getElementById('fill_' + focusPosition[0] + "_" + focusPosition[1])
                     // 高亮相同数字的单元格
                     sampleNumberHighlight(fillDiv, fillDiv.innerHTML === tdelement.getAttribute('data-correctvalue'))
@@ -553,7 +555,7 @@
 						document.getElementById('inner_td_' + k + "_" + focusPosition[1] + '_' + inputValue).innerHTML = '';
 					}
 					// 同时当前选中的单元格，所在的宫中将记录的笔记清除掉
-                    clearInnerTd()
+                    clearBoxSameNote(focusPosition[0], focusPosition[1], inputValue);
 				}
 				// 数字填入后，隐藏笔记，显示填入的数字
 				let innerTab = document.getElementById('inner_tabindex_' + focusPosition[0] + '_' + focusPosition[1]);
@@ -571,6 +573,29 @@
     function clearInnerTd(){
         for (let i = 1; i <= 9; i++) {
             document.getElementById('inner_td_' + focusPosition[0] + "_" + focusPosition[1] + '_' + i).innerHTML = '';
+        }
+    }
+
+    /**
+     * 清除宫内相同的笔记
+     * @param x
+     * @param y
+     * @param value
+     */
+    function clearBoxSameNote(x, y, value) {
+        // 计算选择的单元格所在宫的起始位置坐标
+        const boxRowStart = Math.floor(x / 3) * 3;	// 横坐标
+        const boxColStart = Math.floor(y / 3) * 3;	// 纵坐标
+        // 将单元格所在宫内的单元格笔记去除相同的,
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                for (let k = 1; k <= 9; k++) {
+                    let innerTd = document.getElementById(`inner_td_${boxRowStart + i}_${boxColStart + j}_${k}`)
+                    if (innerTd.innerHTML === value){
+                        innerTd.innerHTML = '';
+                    }
+                }
+            }
         }
     }
 
@@ -782,24 +807,39 @@
     let helpElement = document.getElementById('help');
     helpElement.addEventListener('click', function(event) {
         try{
-            let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
-            // 笔记框
-            let innerTab = document.getElementById('inner_tabindex_' + focusPosition[0] + '_' + focusPosition[1]);
-            if (fillElement.innerHTML === '' || fillElement.innerHTML !== fillElement.parentElement.getAttribute('data-correctvalue')) {
-                fillElement.innerHTML = fillElement.parentElement.getAttribute('data-correctvalue');
-                // 提示之后显示数字
-                fillElement.style.display = 'block';
-                // 隐藏笔记
-                innerTab.style.display = 'none';
-                // 提示后, 检查错误记录是否需要更新
-                let errorPositionFlag = errorPosition[focusPosition[0]][focusPosition[1]]
-                if (errorPositionFlag === 1) {
-                    errorPosition[focusPosition[0]][focusPosition[1]] = 0;
+            if (helpTimes > 0) {
+                let fillElement = document.getElementById('fill_' + focusPosition[0] + '_' + focusPosition[1]);
+                // 笔记框
+                let innerTab = document.getElementById('inner_tabindex_' + focusPosition[0] + '_' + focusPosition[1]);
+                let correctValue = fillElement.parentElement.getAttribute('data-correctvalue');
+                if (fillElement.innerHTML === '' || fillElement.innerHTML !== correctValue) {
+                    fillElement.innerHTML = correctValue;
+                    // 提示之后显示数字
+                    fillElement.style.display = 'block';
+                    // 隐藏笔记
+                    innerTab.style.display = 'none';
+                    // 提示后, 检查错误记录是否需要更新
+                    let errorPositionFlag = errorPosition[focusPosition[0]][focusPosition[1]]
+                    if (errorPositionFlag === 1) {
+                        errorPosition[focusPosition[0]][focusPosition[1]] = 0;
+                    }
+                    havefillvalue[focusPosition[0]][focusPosition[1]] = Number(fillElement.innerHTML);
+                    // 减少提示数
+                    helpTimes--;
+                    document.getElementById('helpTimes').innerHTML = helpTimes;
+                    sampleNumberHighlight(fillElement, true)
+                    // 同时当前选中的单元格，所在的行、列中将记录的笔记中的相同的数字清除掉
+                    for (let k = 0; k < 9; k++) {
+                        document.getElementById('inner_td_' + focusPosition[0] + "_" + k + '_' + correctValue).innerHTML = '';
+                        document.getElementById('inner_td_' + k + "_" + focusPosition[1] + '_' + correctValue).innerHTML = '';
+                    }
+                    // 同时当前选中的单元格，所在的宫中将记录的笔记清除掉
+                    clearBoxSameNote(focusPosition[0], focusPosition[1], correctValue);
+                    // 验证结果
+                    valideAllFillValue();
                 }
-                havefillvalue[focusPosition[0]][focusPosition[1]] = Number(fillElement.innerHTML);
-                sampleNumberHighlight(fillElement, true)
-                // 验证结果
-                valideAllFillValue();
+            } else {
+                alert('提示次数已用完')
             }
         }catch (e) {
             console.log("未选择填入框, 无法提示")
@@ -852,6 +892,18 @@
             totalTime += 1000;
             timer.innerHTML = formatTime(totalTime)
         }, 1000);
+
+        setTimeout(() => {
+            let fiveMinuteInterval = setInterval(() => {
+                if (helpTimes < 3) {
+                    helpTimes++;
+                    document.getElementById('helpTimes').innerHTML = helpTimes;
+                    console.log(`当前提示次数: ${helpTimes}`);
+                } else {
+                    clearInterval(fiveMinuteInterval);
+                }
+            }, 1000 * 60 * 5); // 每隔5分钟（300000毫秒）执行一次
+        }, 1000 * 60 * 5); // 10分钟后（600000毫秒）执行
     }
 
 

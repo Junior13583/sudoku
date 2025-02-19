@@ -138,6 +138,10 @@
 
 .helpImg {
     background-image: url('../img/info.png');
+    font-size: 51px;
+    line-height: 65px;
+    font-weight: bold;
+    color: white;
 }
 
 .gameInput {
