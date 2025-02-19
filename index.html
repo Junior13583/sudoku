@@ -134,6 +134,7 @@
     var gameBoard;
     var sudokuGrid;
     let intervalId;
+    let setTimeoutId;
     let totalTime = 0;
     let helpTimes;
 
@@ -892,8 +893,12 @@
             totalTime += 1000;
             timer.innerHTML = formatTime(totalTime)
         }, 1000);
-
-        setTimeout(() => {
+	    
+	if (setTimeoutId){
+            clearTimeout(setTimeoutId);
+        }
+	    
+        setTimeoutId = setTimeout(() => {
             let fiveMinuteInterval = setInterval(() => {
                 if (helpTimes < 3) {
                     helpTimes++;
