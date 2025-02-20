@@ -621,16 +621,15 @@
             // 停止游戏计时
             stopTimer();
             showPopup(1)
-			// alert("恭喜通关, 游戏耗时： " + (totalTime/1000) + "秒");
+	// 更新cookie中关卡信息
+        levelInfo[levelType.innerHTML] += 1;
+        setCookie("levelInfo", levelInfo, 7);
 		}
 	}
 
     // 下一关
     let nextElement = document.getElementById('next');
     nextElement.addEventListener('click', function (event) {
-        // 更新cookie中关卡信息
-        levelInfo[levelType.innerHTML] += 1;
-        setCookie("levelInfo", levelInfo, 7);
         closePopup();
         createGameBoard(0);
     })
